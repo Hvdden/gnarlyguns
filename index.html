@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GNARLYGUNS // OFFICIAL HUB</title>
+    <title>GNARLYGUNS // OFFICIAL</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --accent: #ff0055;
             --twitch: #9146ff;
-            --yt: #ff0000;
-            --tt: #00f2ea;
             --bg-dark: #020204;
-            --panel-bg: rgba(8, 8, 12, 0.9);
+            --panel-bg: rgba(8, 8, 12, 0.95);
         }
 
         * { 
@@ -26,10 +24,12 @@
             color: #fff;
             font-family: 'Rajdhani', sans-serif;
             height: 100vh;
+            height: 100dvh; 
             width: 100vw;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            /* DEFAULT: Centered for Web */
             justify-content: center;
             align-items: center;
         }
@@ -39,7 +39,6 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 1;
-            cursor: crosshair;
         }
 
         /* --- HUD --- */
@@ -50,158 +49,101 @@
             z-index: 1000;
             font-family: 'Orbitron';
             color: var(--accent);
-            text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
             pointer-events: none;
         }
 
-        /* --- MAIN UI WRAPPER --- */
-        .content-wrapper {
+        /* --- MAIN WRAPPER --- */
+        .wrapper {
             position: relative;
             z-index: 100;
             width: 90%;
             max-width: 1100px;
-            pointer-events: none;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
+            pointer-events: none;
         }
 
-        /* --- BRANDING HEADER --- */
+        /* --- HEADER --- */
         .main-header {
             display: flex;
             align-items: center;
-            gap: 20px;
-            background: rgba(0,0,0,0.6);
-            padding: 15px 25px;
+            gap: 15px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
             border-left: 4px solid var(--accent);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
             align-self: flex-start;
         }
 
-        .logo-frame {
-            width: 60px; height: 60px;
-            background: #000;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo-frame img { width: 85%; height: 85%; object-fit: contain; }
-
-        .brand-info h1 {
-            font-family: 'Orbitron';
-            font-size: 1.8rem;
-            letter-spacing: 3px;
-            color: #fff;
-            line-height: 1;
-        }
-
-        .brand-info p {
-            font-size: 0.8rem;
-            color: var(--accent);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
+        .logo-frame { width: 55px; height: 55px; border: 1px solid #222; }
+        .logo-frame img { width: 100%; height: 100%; object-fit: contain; }
+        .brand-info h1 { font-family: 'Orbitron'; font-size: 1.6rem; letter-spacing: 2px; line-height: 1; }
+        .brand-info p { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-top: 4px; }
 
         /* --- LINKS PANEL --- */
         .links-panel {
             pointer-events: auto;
             background: var(--panel-bg);
-            backdrop-filter: blur(25px);
+            backdrop-filter: blur(30px);
             border: 1px solid rgba(255,255,255,0.1);
             padding: 30px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 Columns on Desktop */
-            gap: 15px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
 
         .social-card {
-            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 30px 10px;
+            padding: 35px 10px;
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.05);
             text-decoration: none;
             color: #fff;
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            overflow: hidden;
+            transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        .social-card i, .social-card svg {
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-            transition: 0.3s;
-            fill: #fff;
-            width: 35px;
-            height: 35px;
-        }
+        .social-card i, .social-card svg { font-size: 2.2rem; margin-bottom: 15px; fill: #fff; width: 35px; height: 35px; }
+        .social-card span { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.6; }
 
-        .social-card span {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.6;
-        }
-
-        /* Hover & Interaction */
         .social-card:hover {
-            background: rgba(255,255,255,0.07);
-            transform: translateY(-5px);
+            background: rgba(255,255,255,0.08);
             border-color: var(--accent);
+            transform: translateY(-5px);
         }
 
-        .social-card::before {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; width: 100%; height: 3px;
-            background: var(--accent);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .social-card:hover::before { transform: scaleX(1); }
-
-        /* Specific Platform Accents */
-        .social-card.twitch:hover { border-color: var(--twitch); }
-        .social-card.twitch:hover::before { background: var(--twitch); }
-        
-        .social-card.youtube:hover { border-color: var(--yt); }
-        .social-card.youtube:hover::before { background: var(--yt); }
-
-        .social-card.tiktok:hover { border-color: var(--tt); }
-        .social-card.tiktok:hover::before { background: var(--tt); }
-
-        /* --- MOBILE OPTIMIZATION --- */
+        /* --- MOBILE ADAPTATION --- */
         @media (max-width: 900px) {
-            .links-panel { grid-template-columns: 1fr 1fr; } /* 2x2 Grid on Tablets */
+            .links-panel { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 600px) {
-            body { justify-content: flex-end; padding-bottom: 30px; }
+            /* SHIFT TO BOTTOM ON MOBILE */
+            body { justify-content: flex-end; }
             
-            .content-wrapper { width: 92%; gap: 10px; }
-            
-            .main-header { align-self: stretch; padding: 10px 15px; }
-            .logo-frame { width: 45px; height: 45px; }
-            .brand-info h1 { font-size: 1.2rem; }
-            
-            .links-panel { 
-                grid-template-columns: 1fr; /* Stacks vertically for thumb-scrolling */
-                padding: 15px;
+            .wrapper { 
+                width: 95%; 
+                padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 15px);
                 gap: 10px;
+            }
+
+            .main-header { align-self: stretch; padding: 10px; }
+            .logo-frame { width: 40px; height: 40px; }
+            .brand-info h1 { font-size: 1.1rem; }
+
+            .links-panel { 
+                grid-template-columns: 1fr; 
+                padding: 15px; 
+                gap: 8px;
             }
 
             .social-card {
                 flex-direction: row;
+                padding: 14px 20px;
                 justify-content: flex-start;
-                padding: 18px 20px;
             }
 
             .social-card i, .social-card svg { margin-bottom: 0; margin-right: 20px; font-size: 1.4rem; width: 24px; height: 24px; }
@@ -211,38 +153,33 @@
 <body>
 
     <canvas id="gameCanvas"></canvas>
+    <div class="hud">KILLS: <span id="score">0</span></div>
 
-    <div class="hud">
-        <div id="score">KILLS: 0</div>
-    </div>
-
-    <div class="content-wrapper">
+    <div class="wrapper">
         <header class="main-header">
-            <div class="logo-frame">
-                <img src="logo.png" alt="Logo">
-            </div>
+            <div class="logo-frame"><img src="logo.png" alt="Logo"></div>
             <div class="brand-info">
                 <h1>GnarlyGuns</h1>
-                <p>Status: Online & Defending</p>
+                <p>SYSTEM_ONLINE</p>
             </div>
         </header>
 
         <main class="links-panel">
-            <a href="https://twitch.tv/gnarlyguns" class="social-card twitch" target="_blank">
+            <a href="https://twitch.tv/gnarlyguns" class="social-card" target="_blank">
                 <i class="fab fa-twitch"></i>
                 <span>Twitch</span>
             </a>
-            <a href="https://youtube.com/@gnarlyguns" class="social-card youtube" target="_blank">
+            <a href="https://youtube.com/@gnarlyguns" class="social-card" target="_blank">
                 <i class="fab fa-youtube"></i>
                 <span>YouTube</span>
             </a>
-            <a href="https://tiktok.com/@gnarlyguns" class="social-card tiktok" target="_blank">
+            <a href="https://tiktok.com/@gnarlyguns" class="social-card" target="_blank">
                 <i class="fab fa-tiktok"></i>
                 <span>TikTok</span>
             </a>
             <a href="https://twitter.com/gnarlyguns" class="social-card" target="_blank">
                 <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-                <span>Twitter / X</span>
+                <span>X / Twitter</span>
             </a>
         </main>
     </div>
@@ -264,29 +201,29 @@
             constructor() {
                 this.x = Math.random() * canvas.width;
                 this.y = -60;
-                this.size = Math.random() * 25 + 15;
-                this.speed = Math.random() * 2 + 1;
+                this.size = Math.random() * 20 + 20;
+                this.speed = Math.random() * 1.5 + 1.2;
                 this.rot = 0;
-                this.rotSpd = Math.random() * 0.05;
+                this.rotS = Math.random() * 0.04;
             }
             update() { 
                 this.y += this.speed; 
-                this.rot += this.rotSpd;
+                this.rot += this.rotS;
                 if(this.y > canvas.height + 60) { this.y = -60; this.x = Math.random() * canvas.width; }
             }
             draw() {
                 ctx.save();
                 ctx.translate(this.x + this.size/2, this.y + this.size/2);
                 ctx.rotate(this.rot);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = 'rgba(255, 0, 85, 0.4)';
+                ctx.lineWidth = 1;
                 ctx.strokeRect(-this.size/2, -this.size/2, this.size, this.size);
                 ctx.restore();
             }
         }
 
         function gameLoop() {
-            ctx.fillStyle = 'rgba(2, 2, 4, 0.4)';
+            ctx.fillStyle = 'rgba(2, 2, 5, 0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             if (asteroids.length < 12) asteroids.push(new Asteroid());
             asteroids.forEach(a => { a.update(); a.draw(); });
@@ -297,18 +234,16 @@
             asteroids.forEach((a, i) => {
                 const dx = clientX - (a.x + a.size/2);
                 const dy = clientY - (a.y + a.size/2);
-                if (Math.hypot(dx, dy) < 50) {
+                if (Math.hypot(dx, dy) < 55) {
                     asteroids.splice(i, 1);
                     score++;
-                    document.getElementById('score').innerText = `KILLS: ${score}`;
+                    document.getElementById('score').innerText = score;
                 }
             });
         }
 
+        canvas.addEventListener('touchstart', (e) => handleShoot(e.touches[0].clientX, e.touches[0].clientY));
         canvas.addEventListener('mousedown', (e) => handleShoot(e.clientX, e.clientY));
-        canvas.addEventListener('touchstart', (e) => {
-            handleShoot(e.touches[0].clientX, e.touches[0].clientY);
-        });
 
         gameLoop();
     </script>
