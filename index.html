@@ -142,7 +142,7 @@
     </style>
 </head>
 <body>
-
+<audio id="bgMusic" src="background.mp3" loop></audio>
     <canvas id="gameCanvas"></canvas>
     <div class="hud">KILLS: <span id="score">0</span></div>
 
@@ -235,7 +235,17 @@
             requestAnimationFrame(gameLoop);
         }
 
+let musicStarted = false;
+        const music = document.getElementById('bgMusic');
+
         function handleShoot(clientX, clientY) {
+            // Start music on first interaction to bypass browser blocks
+            if (!musicStarted) {
+                music.play().catch(e => console.log("Playback failed:", e));
+                music.volume = 0.4; 
+                musicStarted = true;
+            }
+
             asteroids.forEach((a, i) => {
                 const dx = clientX - (a.x + a.size/2);
                 const dy = clientY - (a.y + a.size/2);
