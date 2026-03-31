@@ -29,9 +29,10 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* DEFAULT: Centered for Web */
             justify-content: center;
             align-items: center;
+            /* REQUIRED FOR PARALLAX */
+            perspective: 1000px; 
         }
 
         #gameCanvas {
@@ -41,7 +42,6 @@
             z-index: 1;
         }
 
-        /* --- HUD --- */
         .hud {
             position: fixed;
             top: 20px;
@@ -52,8 +52,8 @@
             pointer-events: none;
         }
 
-        /* --- MAIN WRAPPER --- */
-        .wrapper {
+        /* --- THE MOVING LAYER --- */
+        #parallax-layer {
             position: relative;
             z-index: 100;
             width: 90%;
@@ -62,9 +62,11 @@
             flex-direction: column;
             gap: 25px;
             pointer-events: none;
+            /* Smooths out the tilt motion */
+            transition: transform 0.1s ease-out; 
+            transform-style: preserve-3d;
         }
 
-        /* --- HEADER --- */
         .main-header {
             display: flex;
             align-items: center;
@@ -74,6 +76,8 @@
             border-left: 4px solid var(--accent);
             backdrop-filter: blur(10px);
             align-self: flex-start;
+            /* Lifts header slightly off the panel in 3D */
+            transform: translateZ(20px); 
         }
 
         .logo-frame { width: 55px; height: 55px; border: 1px solid #222; }
@@ -81,7 +85,6 @@
         .brand-info h1 { font-family: 'Orbitron'; font-size: 1.6rem; letter-spacing: 2px; line-height: 1; }
         .brand-info p { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-top: 4px; }
 
-        /* --- LINKS PANEL --- */
         .links-panel {
             pointer-events: auto;
             background: var(--panel-bg);
@@ -92,6 +95,8 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            /* Lifts the whole panel in 3D space */
+            transform: translateZ(10px); 
         }
 
         .social-card {
@@ -112,40 +117,26 @@
         .social-card:hover {
             background: rgba(255,255,255,0.08);
             border-color: var(--accent);
-            transform: translateY(-5px);
+            transform: translateY(-5px) translateZ(15px);
         }
 
-        /* --- MOBILE ADAPTATION --- */
         @media (max-width: 900px) {
             .links-panel { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 600px) {
-            /* SHIFT TO BOTTOM ON MOBILE */
-            body { justify-content: flex-end; }
-            
-            .wrapper { 
+            body { justify-content: flex-end; perspective: none; }
+            #parallax-layer { 
                 width: 95%; 
                 padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 15px);
                 gap: 10px;
+                transform: none !important; /* Disable tilt on mobile */
             }
-
-            .main-header { align-self: stretch; padding: 10px; }
+            .main-header { align-self: stretch; padding: 10px; transform: none; }
             .logo-frame { width: 40px; height: 40px; }
             .brand-info h1 { font-size: 1.1rem; }
-
-            .links-panel { 
-                grid-template-columns: 1fr; 
-                padding: 15px; 
-                gap: 8px;
-            }
-
-            .social-card {
-                flex-direction: row;
-                padding: 14px 20px;
-                justify-content: flex-start;
-            }
-
+            .links-panel { grid-template-columns: 1fr; padding: 15px; gap: 8px; transform: none; }
+            .social-card { flex-direction: row; padding: 14px 20px; justify-content: flex-start; }
             .social-card i, .social-card svg { margin-bottom: 0; margin-right: 20px; font-size: 1.4rem; width: 24px; height: 24px; }
         }
     </style>
@@ -155,7 +146,7 @@
     <canvas id="gameCanvas"></canvas>
     <div class="hud">KILLS: <span id="score">0</span></div>
 
-    <div class="wrapper">
+    <div id="parallax-layer">
         <header class="main-header">
             <div class="logo-frame"><img src="logo.png" alt="Logo"></div>
             <div class="brand-info">
@@ -185,6 +176,20 @@
     </div>
 
     <script>
+        // --- 1. NEW: PARALLAX LOGIC ---
+        const pLayer = document.getElementById('parallax-layer');
+        
+        document.addEventListener('mousemove', (e) => {
+            // Only run on larger screens
+            if (window.innerWidth > 600) {
+                const xVal = (window.innerWidth / 2 - e.pageX) / 40; // Intensity of horizontal tilt
+                const yVal = (window.innerHeight / 2 - e.pageY) / 40; // Intensity of vertical tilt
+                
+                pLayer.style.transform = `rotateY(${xVal}deg) rotateX(${-yVal}deg)`;
+            }
+        });
+
+        // --- 2. GAME LOGIC ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let score = 0;
