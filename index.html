@@ -201,7 +201,51 @@
         }
         window.addEventListener('resize', resize);
         resize();
+// --- NEW: FX CLASSES ---
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.05 + 0.02;
+                this.color = Math.random() > 0.5 ? '#ff0055' : '#9146ff';
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, 3, 3);
+                ctx.globalAlpha = 1.0;
+            }
+        }
 
+        class Laser {
+            constructor(startX, startY, endX, endY) {
+                this.startX = startX;
+                this.startY = startY;
+                this.endX = endX;
+                this.endY = endY;
+                this.life = 1.0;
+            }
+            update() { this.life -= 0.15; }
+            draw() {
+                ctx.beginPath();
+                ctx.lineWidth = this.life * 4;
+                ctx.strokeStyle = `rgba(255, 0, 85, ${this.life})`;
+                ctx.moveTo(this.startX, this.startY);
+                ctx.lineTo(this.endX, this.endY);
+                ctx.stroke();
+            }
+        }
+
+        let particles = [];
+        let lasers = [];
         class Asteroid {
             constructor() {
                 this.x = Math.random() * canvas.width;
@@ -228,28 +272,46 @@
         }
 
         function gameLoop() {
-            ctx.fillStyle = 'rgba(2, 2, 5, 0.5)';
+            ctx.fillStyle = 'rgba(2, 2, 5, 0.4)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             if (asteroids.length < 12) asteroids.push(new Asteroid());
+            
+            // Draw Lasers
+            lasers = lasers.filter(l => l.life > 0);
+            lasers.forEach(l => { l.update(); l.draw(); });
+
+            // Draw Asteroids
             asteroids.forEach(a => { a.update(); a.draw(); });
+
+            // Draw Explosions
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+
             requestAnimationFrame(gameLoop);
         }
 
 let musicStarted = false;
         const music = document.getElementById('bgMusic');
 
-        function handleShoot(clientX, clientY) {
-            // Start music on first interaction to bypass browser blocks
+function handleShoot(clientX, clientY) {
             if (!musicStarted) {
                 music.play().catch(e => console.log("Playback failed:", e));
                 music.volume = 0.4; 
                 musicStarted = true;
             }
 
+            // Create a laser beam from bottom-center
+            lasers.push(new Laser(canvas.width/2, canvas.height, clientX, clientY));
+
             asteroids.forEach((a, i) => {
                 const dx = clientX - (a.x + a.size/2);
                 const dy = clientY - (a.y + a.size/2);
+                
                 if (Math.hypot(dx, dy) < 55) {
+                    // Explosion particles
+                    for(let p=0; p<15; p++) particles.push(new Particle(a.x + a.size/2, a.y + a.size/2));
+                    
                     asteroids.splice(i, 1);
                     score++;
                     document.getElementById('score').innerText = score;
