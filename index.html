@@ -31,7 +31,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            /* REQUIRED FOR PARALLAX */
             perspective: 1000px; 
         }
 
@@ -42,14 +41,60 @@
             z-index: 1;
         }
 
-        .hud {
+        /* --- HUD & VOLUME UI --- */
+        .hud-container {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
             font-family: 'Orbitron';
-            color: var(--accent);
             pointer-events: none;
+        }
+
+        .score-display {
+            color: var(--accent);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border-right: 3px solid var(--accent);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-right: 3px solid var(--twitch);
+            pointer-events: auto; /* Enable interaction for the slider */
+            backdrop-filter: blur(5px);
+        }
+
+        .volume-control i {
+            color: var(--twitch);
+            font-size: 0.9rem;
+        }
+
+        #volumeSlider {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 4px;
+            background: #222;
+            outline: none;
+            cursor: pointer;
+        }
+
+        #volumeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 0;
+            box-shadow: 0 0 10px var(--accent);
+            cursor: pointer;
         }
 
         /* --- THE MOVING LAYER --- */
@@ -62,7 +107,6 @@
             flex-direction: column;
             gap: 25px;
             pointer-events: none;
-            /* Smooths out the tilt motion */
             transition: transform 0.1s ease-out; 
             transform-style: preserve-3d;
         }
@@ -76,7 +120,6 @@
             border-left: 4px solid var(--accent);
             backdrop-filter: blur(10px);
             align-self: flex-start;
-            /* Lifts header slightly off the panel in 3D */
             transform: translateZ(20px); 
         }
 
@@ -95,7 +138,6 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            /* Lifts the whole panel in 3D space */
             transform: translateZ(10px); 
         }
 
@@ -130,7 +172,7 @@
                 width: 95%; 
                 padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 15px);
                 gap: 10px;
-                transform: none !important; /* Disable tilt on mobile */
+                transform: none !important; 
             }
             .main-header { align-self: stretch; padding: 10px; transform: none; }
             .logo-frame { width: 40px; height: 40px; }
@@ -142,9 +184,16 @@
     </style>
 </head>
 <body>
-<audio id="bgMusic" src="background.mp3" loop></audio>
+    <audio id="bgMusic" src="background.mp3" loop></audio>
     <canvas id="gameCanvas"></canvas>
-    <div class="hud">KILLS: <span id="score">0</span></div>
+
+    <div class="hud-container">
+        <div class="score-display">KILLS: <span id="score">0</span></div>
+        <div class="volume-control">
+            <i class="fas fa-volume-up"></i>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.4">
+        </div>
+    </div>
 
     <div id="parallax-layer">
         <header class="main-header">
@@ -176,24 +225,26 @@
     </div>
 
     <script>
-        // --- 1. NEW: PARALLAX LOGIC ---
+        // --- PARALLAX LOGIC ---
         const pLayer = document.getElementById('parallax-layer');
-        
         document.addEventListener('mousemove', (e) => {
-            // Only run on larger screens
             if (window.innerWidth > 600) {
-                const xVal = (window.innerWidth / 2 - e.pageX) / 40; // Intensity of horizontal tilt
-                const yVal = (window.innerHeight / 2 - e.pageY) / 40; // Intensity of vertical tilt
-                
+                const xVal = (window.innerWidth / 2 - e.pageX) / 40;
+                const yVal = (window.innerHeight / 2 - e.pageY) / 40;
                 pLayer.style.transform = `rotateY(${xVal}deg) rotateX(${-yVal}deg)`;
             }
         });
 
-        // --- 2. GAME LOGIC ---
+        // --- GAME LOGIC ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const music = document.getElementById('bgMusic');
+        const volumeSlider = document.getElementById('volumeSlider');
         let score = 0;
         let asteroids = [];
+        let particles = [];
+        let lasers = [];
+        let musicStarted = false;
 
         function resize() {
             canvas.width = window.innerWidth;
@@ -201,22 +252,22 @@
         }
         window.addEventListener('resize', resize);
         resize();
-// --- NEW: FX CLASSES ---
+
+        // Volume control interaction
+        volumeSlider.addEventListener('input', (e) => {
+            music.volume = e.target.value;
+        });
+
         class Particle {
             constructor(x, y) {
-                this.x = x;
-                this.y = y;
+                this.x = x; this.y = y;
                 this.vx = (Math.random() - 0.5) * 8;
                 this.vy = (Math.random() - 0.5) * 8;
                 this.life = 1.0;
                 this.decay = Math.random() * 0.05 + 0.02;
                 this.color = Math.random() > 0.5 ? '#ff0055' : '#9146ff';
             }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life -= this.decay;
-            }
+            update() { this.x += this.vx; this.y += this.vy; this.life -= this.decay; }
             draw() {
                 ctx.globalAlpha = this.life;
                 ctx.fillStyle = this.color;
@@ -227,10 +278,8 @@
 
         class Laser {
             constructor(startX, startY, endX, endY) {
-                this.startX = startX;
-                this.startY = startY;
-                this.endX = endX;
-                this.endY = endY;
+                this.startX = startX; this.startY = startY;
+                this.endX = endX; this.endY = endY;
                 this.life = 1.0;
             }
             update() { this.life -= 0.15; }
@@ -244,8 +293,6 @@
             }
         }
 
-        let particles = [];
-        let lasers = [];
         class Asteroid {
             constructor() {
                 this.x = Math.random() * canvas.width;
@@ -277,41 +324,33 @@
             
             if (asteroids.length < 12) asteroids.push(new Asteroid());
             
-            // Draw Lasers
             lasers = lasers.filter(l => l.life > 0);
             lasers.forEach(l => { l.update(); l.draw(); });
 
-            // Draw Asteroids
             asteroids.forEach(a => { a.update(); a.draw(); });
 
-            // Draw Explosions
             particles = particles.filter(p => p.life > 0);
             particles.forEach(p => { p.update(); p.draw(); });
 
             requestAnimationFrame(gameLoop);
         }
 
-let musicStarted = false;
-        const music = document.getElementById('bgMusic');
-
-function handleShoot(clientX, clientY) {
+        function handleShoot(clientX, clientY) {
+            // Respect volume slider on initial start
             if (!musicStarted) {
+                music.volume = volumeSlider.value;
                 music.play().catch(e => console.log("Playback failed:", e));
-                music.volume = 0.4; 
                 musicStarted = true;
             }
 
-            // Create a laser beam from bottom-center
+            // Fire "weapon" laser within frame
             lasers.push(new Laser(canvas.width/2, canvas.height, clientX, clientY));
 
             asteroids.forEach((a, i) => {
                 const dx = clientX - (a.x + a.size/2);
                 const dy = clientY - (a.y + a.size/2);
-                
                 if (Math.hypot(dx, dy) < 55) {
-                    // Explosion particles
                     for(let p=0; p<15; p++) particles.push(new Particle(a.x + a.size/2, a.y + a.size/2));
-                    
                     asteroids.splice(i, 1);
                     score++;
                     document.getElementById('score').innerText = score;
