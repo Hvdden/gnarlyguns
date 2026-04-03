@@ -69,7 +69,7 @@
             background: rgba(0, 0, 0, 0.7);
             padding: 8px 12px;
             border-right: 3px solid var(--twitch);
-            pointer-events: auto; /* Enable interaction for the slider */
+            pointer-events: auto;
             backdrop-filter: blur(5px);
         }
 
@@ -168,6 +168,10 @@
 
         @media (max-width: 600px) {
             body { justify-content: flex-end; perspective: none; }
+            
+            /* HIDE VOLUME ON MOBILE */
+            .volume-control { display: none; }
+
             #parallax-layer { 
                 width: 95%; 
                 padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 15px);
@@ -253,10 +257,12 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // Volume control interaction
-        volumeSlider.addEventListener('input', (e) => {
-            music.volume = e.target.value;
-        });
+        // Update volume - checking for element existence (good practice since it's hidden on mobile)
+        if(volumeSlider) {
+            volumeSlider.addEventListener('input', (e) => {
+                music.volume = e.target.value;
+            });
+        }
 
         class Particle {
             constructor(x, y) {
@@ -336,14 +342,14 @@
         }
 
         function handleShoot(clientX, clientY) {
-            // Respect volume slider on initial start
             if (!musicStarted) {
-                music.volume = volumeSlider.value;
+                // Initial volume set from slider or default 0.4
+                music.volume = volumeSlider ? volumeSlider.value : 0.4;
                 music.play().catch(e => console.log("Playback failed:", e));
                 musicStarted = true;
             }
 
-            // Fire "weapon" laser within frame
+            // Fire laser weapon
             lasers.push(new Laser(canvas.width/2, canvas.height, clientX, clientY));
 
             asteroids.forEach((a, i) => {
